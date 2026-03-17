@@ -1,5 +1,7 @@
 # Almas Spotlight
 
+<img src="docs/screenshot.png" alt="Almas Spotlight" width="500">
+
 A minimal macOS app launcher to replace Spotlight's broken app search. Fuzzy-searches all your installed applications, indexed at startup. No Electron, no daemons, no telemetry — 313 KB native Swift binary.
 
 ## What it looks like
