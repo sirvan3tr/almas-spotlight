@@ -14,7 +14,7 @@ Open with **Option+Space**, type to filter, ↩ to launch, ⎋ or click away to 
 ## Install
 
 ```sh
-git clone https://github.com/yourusername/almas-spotlight
+git clone https://github.com/sirvan3tr/almas-spotlight.git
 cd almas-spotlight
 make install
 open ~/Applications/AlmasSpotlight.app
@@ -32,12 +32,12 @@ Default is **Option+Space**. To use **Cmd+Space** instead:
 
 ## Keyboard shortcuts
 
-| Key | Action |
-|---|---|
-| Type | Fuzzy-search installed apps |
-| ↑ / ↓ | Move selection |
-| ↩ | Launch |
-| ⎋ or click away | Dismiss |
+| Key             | Action                      |
+| --------------- | --------------------------- |
+| Type            | Fuzzy-search installed apps |
+| ↑ / ↓           | Move selection              |
+| ↩               | Launch                      |
+| ⎋ or click away | Dismiss                     |
 
 ## Make targets
 
@@ -55,13 +55,13 @@ make clean      # remove build artefacts
 
 Results are ranked in tiers — the score increases the more you type, so the right app always surfaces:
 
-| Tier | Example query → match | Score |
-|---|---|---|
-| Exact | `"spotify"` → Spotify | 1 000 000 |
-| Prefix | `"spot"` → Spotify | 500 000 + len × 1 000 |
-| Word-start | `"sc"` → Screen Saver | 200 000 + len × 800 |
-| Substring | `"tify"` → Spotify | 50 000 + len × 500 |
-| Fuzzy | `"sptfy"` → Spotify | position-weighted |
+| Tier       | Example query → match | Score                 |
+| ---------- | --------------------- | --------------------- |
+| Exact      | `"spotify"` → Spotify | 1 000 000             |
+| Prefix     | `"spot"` → Spotify    | 500 000 + len × 1 000 |
+| Word-start | `"sc"` → Screen Saver | 200 000 + len × 800   |
+| Substring  | `"tify"` → Spotify    | 50 000 + len × 500    |
+| Fuzzy      | `"sptfy"` → Spotify   | position-weighted     |
 
 Use `make search` to inspect scores interactively against your real app index.
 
