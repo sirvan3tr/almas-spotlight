@@ -16,19 +16,22 @@ To use **Cmd+Space** instead:
 ```
 main.swift
   └─ AppDelegate
-       ├─ AppIndexer.shared.indexNow() ← startup scan
-       ├─ HotkeyManager               ← Carbon RegisterEventHotKey
+       ├─ AppIndexer.shared.indexNow()    ← synchronous startup scan
+       ├─ AppIndexWatcher                 ← FSEvents watcher on searchRoots
+       ├─ HotkeyManager                  ← Carbon RegisterEventHotKey
        └─ SearchPanel (NSPanel)
-            ├─ SearchViewModel        ← ObservableObject
-            │    ├─ FuzzyMatcher      ← pure scoring functions
-            │    └─ AppIndexer.shared ← observable app list
+            ├─ SearchViewModel            ← ObservableObject
+            │    ├─ FuzzyMatcher          ← pure scoring functions
+            │    └─ AppIndexer.shared     ← app list (plain var, updated via notification)
             └─ SearchView (SwiftUI)
-                 ├─ SearchTextField   ← NSViewRepresentable
-                 │    └─ Coordinator  ← NSTextFieldDelegate (↑↓↩⎋)
+                 ├─ SearchTextField       ← NSViewRepresentable
+                 │    └─ Coordinator      ← NSTextFieldDelegate (↑↓↩⎋)
                  └─ AppRow
 ```
 
 ## Data flow
+
+### Keystroke → results
 
 ```
 HotkeyManager ──fires──▶ SearchPanel.toggle()
@@ -36,24 +39,38 @@ HotkeyManager ──fires──▶ SearchPanel.toggle()
                         show: NSApp.activate
                               │
                    User types ▼
-                   SearchTextField ──binding──▶ SearchViewModel.query
-                                                      │
-                                              FuzzyMatcher.search()
-                                                      │
-                                              @Published results
-                                                      │
-                                        SearchView re-renders rows
-                                                      ▲
-                                                      │
-                                  AppIndexer.$apps ──┘
-                              (re-ranks current query when the app list changes)
-                                                      │
-                                        SearchView re-renders rows
-                                                      │
-                                         User presses ↩
-                                                      │
-                                        NSWorkspace.open(app.url)
-                                        SearchPanel.hide()
+                   SearchTextField ──delegate──▶ SearchViewModel.updateQuery()
+                                                       │
+                                               FuzzyMatcher.search()
+                                                       │
+                                               @Published results
+                                                       │
+                                         SearchView re-renders rows
+                                                       │
+                                          User presses ↩
+                                                       │
+                                         NSWorkspace.open(app.url)
+                                         SearchPanel.hide()
+```
+
+### Live reindex (app install / uninstall)
+
+```
+FSEvents kernel stream
+  └─ AppIndexWatcher (background DispatchQueue)
+       │  debounced 1 s, directory-level events only
+       ▼
+  AppIndexer.reindexInBackground()
+       │  scan runs on DispatchQueue.global(.utility)
+       ▼
+  DispatchQueue.main: AppIndexer.shared.apps = fresh
+       │
+       ▼
+  NotificationCenter.post(AppIndexWatcher.indexDidChange)
+       │
+       ▼
+  SearchViewModel.indexDidChange()
+       └─ refreshResults() — re-ranks current query against updated list
 ```
 
 ## App indexing
