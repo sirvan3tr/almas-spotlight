@@ -11,6 +11,20 @@ final class SearchViewModel: ObservableObject {
 
     init(indexer: AppIndexer = .shared) {
         self.indexer = indexer
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(indexDidChange),
+            name: AppIndexWatcher.indexDidChange,
+            object: nil
+        )
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc private func indexDidChange() {
+        refreshResults()
     }
 
     /// Called directly by the NSTextField coordinator — no binding indirection.

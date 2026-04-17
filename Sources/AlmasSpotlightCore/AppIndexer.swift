@@ -16,16 +16,19 @@ public final class AppIndexer {
 
     public private(set) var apps: [AppEntry] = []
 
-    private static let searchRoots: [URL] = {
-        let home = URL(fileURLWithPath: NSHomeDirectory())
+    public static let searchRootPaths: [String] = {
+        let home = NSHomeDirectory()
         return [
-            URL(fileURLWithPath: "/Applications"),
-            URL(fileURLWithPath: "/System/Applications"),
-            URL(fileURLWithPath: "/System/Applications/Utilities"),
-            URL(fileURLWithPath: "/System/Library/CoreServices"),
-            home.appendingPathComponent("Applications"),
+            "/Applications",
+            "/System/Applications",
+            "/System/Applications/Utilities",
+            "/System/Library/CoreServices",
+            home + "/Applications",
         ]
     }()
+
+    private static let searchRoots: [URL] =
+        searchRootPaths.map { URL(fileURLWithPath: $0) }
 
     private init() {}
 

@@ -4,6 +4,7 @@ import AlmasSpotlightCore
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var searchPanel: SearchPanel?
     private var hotkeyManager: HotkeyManager?
+    private var indexWatcher: AppIndexWatcher?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -19,5 +20,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hotkeyManager = HotkeyManager(keyCode: 49, modifiers: 2048) { [weak panel] in
             panel?.toggle()
         }
+
+        let watcher = AppIndexWatcher(paths: AppIndexer.searchRootPaths) {
+            DispatchQueue.main.async {
+                AppIndexer.shared.indexNow()
+                NotificationCenter.default.post(
+                    name: AppIndexWatcher.indexDidChange, object: nil)
+            }
+        }
+        watcher.start()
+        self.indexWatcher = watcher
     }
 }
