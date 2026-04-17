@@ -48,11 +48,10 @@ public final class AppIndexWatcher {
             &ctx,
             paths as CFArray,
             FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
-            1.0,
+            2.0,
             FSEventStreamCreateFlags(
                 kFSEventStreamCreateFlagNoDefer |
-                kFSEventStreamCreateFlagIgnoreSelf |
-                kFSEventStreamCreateFlagFileEvents
+                kFSEventStreamCreateFlagIgnoreSelf
             )
         ) else {
             return false
@@ -68,7 +67,7 @@ public final class AppIndexWatcher {
         debounce?.cancel()
         let work = DispatchWorkItem { [weak self] in self?.onChange() }
         debounce = work
-        queue.asyncAfter(deadline: .now() + 0.4, execute: work)
+        queue.asyncAfter(deadline: .now() + 1.0, execute: work)
     }
 
     deinit {

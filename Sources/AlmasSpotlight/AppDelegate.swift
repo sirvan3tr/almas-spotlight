@@ -22,8 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let watcher = AppIndexWatcher(paths: AppIndexer.searchRootPaths) {
-            DispatchQueue.main.async {
-                AppIndexer.shared.indexNow()
+            AppIndexer.shared.reindexInBackground {
                 NotificationCenter.default.post(
                     name: AppIndexWatcher.indexDidChange, object: nil)
             }

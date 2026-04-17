@@ -42,6 +42,18 @@ public final class AppIndexer {
         buildIndex()
     }
 
+    /// Builds the index on a background queue, then publishes on the main queue.
+    /// `completion` runs on main after `apps` has been replaced.
+    public func reindexInBackground(completion: (() -> Void)? = nil) {
+        DispatchQueue.global(qos: .utility).async {
+            let fresh = self.buildIndex()
+            DispatchQueue.main.async {
+                self.apps = fresh
+                completion?()
+            }
+        }
+    }
+
     private func buildIndex() -> [AppEntry] {
         var discovered: [AppEntry] = []
         let fm = FileManager.default
