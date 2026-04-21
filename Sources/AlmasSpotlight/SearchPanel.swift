@@ -57,6 +57,16 @@ final class SearchPanel: NSPanel {
     override var canBecomeKey: Bool  { true }
     override var canBecomeMain: Bool { false }
 
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        guard event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command,
+              let char = event.charactersIgnoringModifiers,
+              let digit = Int(char), digit >= 1 && digit <= 8 else {
+            return super.performKeyEquivalent(with: event)
+        }
+        viewModel.launch(at: digit - 1)
+        return true
+    }
+
     // MARK: - Show / Hide / Toggle
 
     func show() {
