@@ -52,7 +52,9 @@ kill:
 	pkill -x $(BINARY) || true
 
 ## Reinstall and restart
-restart: install kill
+restart: install
+	pkill -x $(BINARY) || true
+	sleep 1
 	open $(INSTALL)/$(APP)
 
 ## Remove build artefacts and local .app
