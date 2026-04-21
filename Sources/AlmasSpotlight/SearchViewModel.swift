@@ -61,6 +61,12 @@ final class SearchViewModel: ObservableObject {
         launch(items[selectedIndex])
     }
 
+    func launch(at index: Int) {
+        let items = displayItems
+        guard index < items.count else { return }
+        launch(items[index])
+    }
+
     func launch(_ app: AppEntry) {
         RecentsStore.shared.record(app)
         NSWorkspace.shared.open(app.url)
