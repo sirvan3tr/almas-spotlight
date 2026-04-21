@@ -9,7 +9,7 @@ struct SearchView: View {
     let onHeightChange: (CGFloat) -> Void
 
     private let searchBarHeight:  CGFloat = 66
-    private let rowHeight:        CGFloat = 54
+    private let rowHeight:        CGFloat = 58
     private let headerHeight:     CGFloat = 28
     private let noResultsHeight:  CGFloat = 54
     private let maxVisible:       Int     = 12
