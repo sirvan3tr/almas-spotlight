@@ -12,7 +12,7 @@ struct SearchView: View {
     private let rowHeight:        CGFloat = 54
     private let headerHeight:     CGFloat = 28
     private let noResultsHeight:  CGFloat = 54
-    private let maxVisible:       Int     = 8
+    private let maxVisible:       Int     = 12
 
     var body: some View {
         VStack(spacing: 0) {
@@ -135,10 +135,19 @@ struct AppRow: View {
                 .interpolation(.high)
                 .frame(width: 34, height: 34)
 
-            Text(app.name)
-                .font(.system(size: 15, weight: .regular))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(app.name)
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+
+                if isSelected {
+                    Text(app.url.deletingLastPathComponent().path)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+            }
 
             Spacer()
         }
