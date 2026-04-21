@@ -8,41 +8,76 @@ struct SearchView: View {
     @ObservedObject var model: SearchViewModel
     let onHeightChange: (CGFloat) -> Void
 
-    private let searchBarHeight: CGFloat = 66
-    private let rowHeight: CGFloat       = 54
-    private let maxVisible: Int          = 8
+    private let searchBarHeight:  CGFloat = 66
+    private let rowHeight:        CGFloat = 54
+    private let headerHeight:     CGFloat = 28
+    private let noResultsHeight:  CGFloat = 54
+    private let maxVisible:       Int     = 8
 
     var body: some View {
         VStack(spacing: 0) {
             searchBar
-
-            if !displayedResults.isEmpty {
-                Divider().opacity(0.25)
-
-                VStack(spacing: 0) {
-                    ForEach(displayedResults) { app in
-                        let isSelected = (model.results.firstIndex(of: app) == model.selectedIndex)
-                        AppRow(app: app, isSelected: isSelected)
-                            .contentShape(Rectangle())
-                            .onTapGesture { model.launch(app) }
-                    }
-                }
-                .frame(height: CGFloat(displayedResults.count) * rowHeight)
-            }
+            listContent
         }
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
-        .onChange(of: model.results) { _, newResults in
-            onHeightChange(totalHeight(for: newResults.count))
+        .onAppear { onHeightChange(currentHeight()) }
+        .onChange(of: model.results) { _, _ in onHeightChange(currentHeight()) }
+        .onChange(of: model.query)   { _, _ in onHeightChange(currentHeight()) }
+        .onChange(of: model.recents) { _, _ in onHeightChange(currentHeight()) }
+    }
+
+    // MARK: - List content
+
+    @ViewBuilder
+    private var listContent: some View {
+        if model.query.isEmpty {
+            if !model.recents.isEmpty {
+                Divider().opacity(0.25)
+                sectionHeader("Recent")
+                appRows(model.recents)
+            }
+        } else if model.results.isEmpty {
+            Divider().opacity(0.25)
+            noResultsView
+        } else {
+            Divider().opacity(0.25)
+            appRows(Array(model.results.prefix(maxVisible)))
         }
     }
 
-    /// Cap visible results — simple Array slice, no LazyVStack or ScrollViewReader.
-    private var displayedResults: [AppEntry] {
-        Array(model.results.prefix(maxVisible))
+    @ViewBuilder
+    private func appRows(_ apps: [AppEntry]) -> some View {
+        VStack(spacing: 0) {
+            ForEach(apps) { app in
+                let isSelected = model.displayItems.firstIndex(of: app) == model.selectedIndex
+                AppRow(app: app, isSelected: isSelected)
+                    .contentShape(Rectangle())
+                    .onTapGesture { model.launch(app) }
+            }
+        }
     }
 
-    // MARK: Search bar
+    private func sectionHeader(_ title: String) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.tertiary)
+            Spacer()
+        }
+        .padding(.horizontal, 18)
+        .frame(height: headerHeight)
+    }
+
+    private var noResultsView: some View {
+        Text("No apps found")
+            .font(.system(size: 14))
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity)
+            .frame(height: noResultsHeight)
+    }
+
+    // MARK: - Search bar
 
     private var searchBar: some View {
         HStack(spacing: 10) {
@@ -68,11 +103,18 @@ struct SearchView: View {
         .frame(height: searchBarHeight)
     }
 
-    // MARK: Helpers
+    // MARK: - Height calculation
 
-    private func totalHeight(for count: Int) -> CGFloat {
-        let divider: CGFloat = count > 0 ? 1 : 0
-        return searchBarHeight + divider + CGFloat(min(count, maxVisible)) * rowHeight
+    private func currentHeight() -> CGFloat {
+        if model.query.isEmpty {
+            guard !model.recents.isEmpty else { return searchBarHeight }
+            return searchBarHeight + 1 + headerHeight + CGFloat(model.recents.count) * rowHeight
+        } else if model.results.isEmpty {
+            return searchBarHeight + 1 + noResultsHeight
+        } else {
+            let count = min(model.results.count, maxVisible)
+            return searchBarHeight + 1 + CGFloat(count) * rowHeight
+        }
     }
 }
 
