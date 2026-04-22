@@ -1,10 +1,21 @@
 import Foundation
 
 /// An immutable record of a discovered application bundle.
+///
+/// `searchScalars` is the case/diacritic/width-folded Unicode-scalar form of
+/// `name`, computed once at index time so the search hot path never touches
+/// `String.Index` arithmetic or allocates new Strings per keystroke.
 public struct AppEntry: Identifiable, Hashable {
     public var id: URL { url }
     public let name: String
     public let url: URL
+    public let searchScalars: [Unicode.Scalar]
+
+    public init(name: String, url: URL) {
+        self.name = name
+        self.url = url
+        self.searchScalars = FuzzyMatcher.normalizeScalars(name)
+    }
 
     public func hash(into hasher: inout Hasher) { hasher.combine(url) }
     public static func == (lhs: AppEntry, rhs: AppEntry) -> Bool { lhs.url == rhs.url }

@@ -74,8 +74,11 @@ final class SearchPanel: NSPanel {
         previousApp = NSWorkspace.shared.frontmostApplication
         viewModel.reset()
         position()
-        NSApp.activate(ignoringOtherApps: true)
-        makeKeyAndOrderFront(nil)
+        // Nonactivating panel: we intentionally skip `NSApp.activate` to avoid
+        // the full app-switch cycle. `orderFrontRegardless` + `makeKey` gives
+        // us keyboard focus without stealing activation from the frontmost app.
+        orderFrontRegardless()
+        makeKey()
     }
 
     func hide() {

@@ -98,6 +98,13 @@ Results are deduplicated by URL and sorted case-insensitively. Search input is t
 
 ## Fuzzy scoring
 
+Both query and app names are reduced to `[Unicode.Scalar]` before scoring:
+
+- app names are pre-normalised **once at index time** into `AppEntry.searchScalars` (case-, diacritic-, and width-folded, lowercased, trimmed)
+- the query is normalised **once per search**, not once per app
+
+All tier helpers index the resulting arrays with plain `Int` offsets, avoiding per-keystroke String allocations and the O(n) `String.Index.distance` walks that made the old fuzzy path effectively O(n²) per app.
+
 | Condition | Score |
 |---|---|
 | Exact match | 1 000 000 |
@@ -105,6 +112,12 @@ Results are deduplicated by URL and sorted case-insensitively. Search input is t
 | Word-start prefix | 200 000 + word-start bonus |
 | Substring match | 50 000 + `query.count * 500` |
 | Fuzzy (chars in order) | earlier-position bonus + consecutive bonus |
+
+## Show / hide latency
+
+`SearchPanel.show()` does **not** call `NSApp.activate(...)`. The panel is a `.nonactivatingPanel` with `canBecomeKey = true`; `orderFrontRegardless()` + `makeKey()` is sufficient to receive keyboard input and avoids the full app-activation cycle (tens of ms per hotkey press).
+
+Cancellation (`esc` / click-outside) still reactivates `previousApp`, preserving the user's previous focus. The launch path clears `previousApp` so the newly-opened app keeps focus.
 
 ## Build
 
