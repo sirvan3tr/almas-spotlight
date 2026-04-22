@@ -39,6 +39,7 @@ final class SearchPanel: NSPanel {
         collectionBehavior  = [.canJoinAllSpaces, .fullScreenAuxiliary]
 
         viewModel.onDismiss = { [weak self] in self?.hide() }
+        viewModel.onLaunch  = { [weak self] app in self?.launch(app) }
 
         let rootView = SearchView(model: viewModel) { [weak self] height in
             self?.resize(to: height)
@@ -85,6 +86,27 @@ final class SearchPanel: NSPanel {
 
     func toggle() {
         isVisible ? hide() : show()
+    }
+
+    /// Launches `app` and surrenders focus to it.
+    ///
+    /// Distinct from `hide()`: we drop the "previous app" reference so the
+    /// newly-launched app keeps focus instead of being immediately displaced
+    /// by reactivation of whatever was frontmost before the panel appeared.
+    private func launch(_ app: AppEntry) {
+        previousApp = nil
+        orderOut(nil)
+
+        let config = NSWorkspace.OpenConfiguration()
+        config.activates = true
+        config.promptsUserIfNeeded = false
+
+        NSWorkspace.shared.openApplication(at: app.url, configuration: config) { _, error in
+            guard let error else { return }
+            FileHandle.standardError.write(
+                Data("almas-spotlight: failed to open \(app.url.path): \(error)\n".utf8)
+            )
+        }
     }
 
     // MARK: - Layout

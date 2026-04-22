@@ -49,9 +49,18 @@ HotkeyManager ──fires──▶ SearchPanel.toggle()
                                                        │
                                           User presses ↩
                                                        │
-                                         NSWorkspace.open(app.url)
-                                         SearchPanel.hide()
+                                         SearchViewModel.launch(app)
+                                           ├─ RecentsStore.record(app)
+                                           └─ onLaunch(app) ─▶ SearchPanel.launch(app)
+                                                                   │
+                                                     previousApp = nil   ◀── don't steal focus back
+                                                     orderOut(nil)
+                                                     NSWorkspace.openApplication(
+                                                        at: app.url,
+                                                        configuration: activates=true)
 ```
+
+Cancellation (`esc`, click-outside) uses a separate path — `onDismiss → SearchPanel.hide()` — which *does* reactivate the previously-frontmost app, preserving user flow.
 
 ### Live reindex (app install / uninstall)
 

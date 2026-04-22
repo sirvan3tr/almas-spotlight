@@ -7,7 +7,10 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var recents: [AppEntry] = []
     @Published private(set) var selectedIndex: Int = 0
 
+    /// Fired when the user cancels (escape, click-outside). Restores previous app focus.
     var onDismiss: (() -> Void)?
+    /// Fired when the user picks an app. Owner is responsible for OS-level activation.
+    var onLaunch: ((AppEntry) -> Void)?
     private let indexer: AppIndexer
 
     /// Items currently shown in the list — recents when idle, search results otherwise.
@@ -69,8 +72,7 @@ final class SearchViewModel: ObservableObject {
 
     func launch(_ app: AppEntry) {
         RecentsStore.shared.record(app)
-        NSWorkspace.shared.open(app.url)
-        onDismiss?()
+        onLaunch?(app)
     }
 
     // MARK: - Private
